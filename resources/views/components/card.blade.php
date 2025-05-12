@@ -2,7 +2,7 @@
 
 <div class="card shadow-lg border-0 rounded-4 overflow-hidden transition-effect h-100">
     <!-- Gambar Produk -->
-    <img src="{{ $img }}" class="card-img-top img-fixed" alt="{{ $judul }}">
+    <!-- <img src="{{ $img }}" class="card-img-top img-fixed" alt="{{ $judul }}"> -->
 
     <div class="card-body p-3 d-flex flex-column text-center">
         <!-- Nama Produk -->
