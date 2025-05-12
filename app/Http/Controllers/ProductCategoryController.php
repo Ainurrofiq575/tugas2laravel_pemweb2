@@ -3,67 +3,97 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
-use App\Models\Categories;
+use App\Models\ProductCategory;
+use Illuminate\Support\Facades\Storage;
 
 class ProductCategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $categories = Categories::all();
-        return view('dashboard.categories.index',[
-            'categories'=>$categories
+        $categories = ProductCategory::all();
+        return view('dashboard.categories.index', [
+            'categories' => $categories,
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('dashboard.categories.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required',
+            'slug' => 'required|unique:product_categories,slug',
+            'description' => 'nullable',
+            'image' => 'nullable|image|max:2048',  // Validasi gambar
+        ]);
+
+        // Ambil data dari request (kecuali gambar)
+        $data = $request->only('name', 'slug', 'description');
+
+        // Cek apakah ada gambar yang di-upload
+        if ($request->hasFile('image')) {
+            // Simpan gambar baru dan masukkan path-nya ke dalam data
+            $data['image'] = $request->file('image')->store('categories', 'public');
+        }
+
+        // Simpan kategori baru ke database
+        ProductCategory::create($data);
+
+        // Redirect dengan pesan sukses
+        return redirect()->route('categories.index')->with('successMessage', 'Category added successfully!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function edit(ProductCategory $category)
     {
-        //
+        // Menampilkan halaman edit kategori dengan data kategori yang dipilih
+        return view('dashboard.categories.edit', compact('category'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(Request $request, ProductCategory $category)
     {
-        //
+        // Validasi input data
+        $request->validate([
+            'name' => 'required',
+            'slug' => 'required|unique:product_categories,slug,' . $category->id, // Exclude current category slug
+            'description' => 'nullable',
+            'image' => 'nullable|image|max:2048',  // Validasi gambar
+        ]);
+
+        // Ambil data dari request (kecuali gambar)
+        $data = $request->only('name', 'slug', 'description');
+
+        // Cek jika ada gambar baru yang di-upload
+        if ($request->hasFile('image')) {
+            // Jika kategori sebelumnya punya gambar, kita hapus gambar lama terlebih dahulu
+            if ($category->image) {
+                Storage::delete('public/' . $category->image);  // Menghapus gambar lama
+            }
+
+            // Simpan gambar baru dan masukkan path-nya ke dalam data
+            $data['image'] = $request->file('image')->store('categories', 'public');
+        }
+
+        // Update data kategori di database
+        $category->update($data);
+
+        // Redirect dengan pesan sukses
+        return redirect()->route('categories.index')->with('successMessage', 'Category updated successfully!');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(ProductCategory $category)
     {
-        //
-    }
+        // Hapus gambar terkait jika ada
+        if ($category->image) {
+            Storage::delete('public/' . $category->image); // Menghapus gambar jika ada
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        // Hapus kategori dari database
+        $category->delete();
+
+        // Redirect dengan pesan sukses
+        return redirect()->route('categories.index')->with('successMessage', 'Category deleted successfully!');
     }
 }
