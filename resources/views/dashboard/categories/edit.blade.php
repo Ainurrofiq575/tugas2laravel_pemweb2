@@ -3,42 +3,42 @@
         <div class="w-full max-w-lg p-8 bg-white rounded-lg shadow-lg">
             <h1 class="text-2xl font-bold text-blue-600 mb-6 text-center">Edit Product Category</h1>
 
-            <form action="{{ route('categories.update', $category->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('categories.update', $category->id) }}" method="POST">
                 @csrf
                 @method('PATCH')
 
                 <!-- Name Input -->
                 <div class="mb-4">
                     <label class="block text-lg font-semibold text-gray-700 mb-2">Category Name</label>
-                    <input type="text" name="name" class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ $category->name }}" required placeholder="Enter category name">
+                    <input type="text" name="name" class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('name', $category->name) }}" required placeholder="Enter category name">
                 </div>
 
                 <!-- Slug Input -->
                 <div class="mb-4">
                     <label class="block text-lg font-semibold text-gray-700 mb-2">Slug</label>
-                    <input type="text" name="slug" class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ $category->slug }}" required placeholder="Enter category slug">
+                    <input type="text" name="slug" class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="{{ old('slug', $category->slug) }}" required placeholder="Enter category slug">
                 </div>
 
                 <!-- Description Textarea -->
                 <div class="mb-4">
                     <label class="block text-lg font-semibold text-gray-700 mb-2">Description</label>
-                    <textarea name="description" class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Add a description">{{ $category->description }}</textarea>
+                    <textarea name="description" class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Add a description">{{ old('description', $category->description) }}</textarea>
                 </div>
 
                 <!-- Display Current Image -->
                 @if($category->image)
-                    <div class="mb-4">
-                        <label class="block text-lg font-semibold text-gray-700 mb-2">Current Image</label>
-                        <div class="flex justify-center">
-                            <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" class="w-32 h-32 object-cover rounded-md shadow-md">
-                        </div>
+                    <div class="mb-4 text-center">
+                        <img src="{{ $category->image }}" alt="{{ $category->name }}" class="w-32 h-32 object-cover rounded-md mx-auto shadow">
                     </div>
                 @endif
 
-                <!-- Change Image Input -->
+                <!-- URL Input for Image -->
                 <div class="mb-4">
-                    <label class="block text-lg font-semibold text-gray-700 mb-2">Change Image (Optional)</label>
-                    <input type="file" name="image" class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-lg font-semibold text-gray-700 mb-2">Image URL</label>
+                    <input type="url" name="image_url" 
+                        value="{{ old('image_url', $category->image) }}" 
+                        placeholder="https://example.com/image.jpg"
+                        class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
                 <!-- Submit and Cancel Buttons -->

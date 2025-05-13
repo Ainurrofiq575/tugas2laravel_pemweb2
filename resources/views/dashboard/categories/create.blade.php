@@ -26,8 +26,7 @@
 
                 <!-- Image Input -->
                 <div class="mb-4">
-                    <label class="block text-lg font-semibold text-gray-700 mb-2">Category Image (Optional)</label>
-                    <input type="file" name="image" class="w-full border border-gray-300 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <flux:input label="URL Gambar" name="image_url" type="url" class="mb-3"/>
                 </div>
 
                 <!-- Submit and Cancel Buttons -->

@@ -31,54 +31,58 @@ class ProductCategoryController extends Controller
         return view('dashboard.categories.create');
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required',
-            'slug' => 'required|unique:product_categories,slug',
-            'description' => 'nullable',
-            'image' => 'nullable|image|max:2048',
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required',
+        'slug' => 'required|unique:product_categories,slug',
+        'description' => 'nullable',
+        'image_url' => 'nullable|url', // Tambahkan validasi URL gambar
+    ]);
 
-        $data = $request->only('name', 'slug', 'description');
+    // Ambil data yang diperlukan
+    $data = $request->only('name', 'slug', 'description');
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('categories', 'public');
-        }
-
-        ProductCategory::create($data);
-
-        return redirect()->route('categories.index')->with('successMessage', 'Category added successfully!');
+    // Cek jika ada image URL dan tambahkan ke data
+    if ($request->filled('image_url')) {
+        $data['image'] = $request->image_url;
     }
+
+    // Buat kategori baru dan simpan
+    ProductCategory::create($data);
+
+    return redirect()->route('categories.index')->with('successMessage', 'Category added successfully!');
+}
+
 
     public function edit(ProductCategory $category)
     {
         return view('dashboard.categories.edit', compact('category'));
     }
 
-    public function update(Request $request, ProductCategory $category)
-    {
-        $request->validate([
-            'name' => 'required',
-            'slug' => 'required|unique:product_categories,slug,' . $category->id,
-            'description' => 'nullable',
-            'image' => 'nullable|image|max:2048',
-        ]);
+public function update(Request $request, ProductCategory $category)
+{
+    $request->validate([
+        'name' => 'required',
+        'slug' => 'required|unique:product_categories,slug,' . $category->id,
+        'description' => 'nullable',
+        'image_url' => 'nullable|url',
+    ]);
 
-        $data = $request->only('name', 'slug', 'description');
+    // Ambil data input
+    $data = $request->only('name', 'slug', 'description');
 
-        if ($request->hasFile('image')) {
-            if ($category->image) {
-                Storage::delete('public/' . $category->image);
-            }
+    // Jika ada input image_url, gunakan itu. Jika tidak, pakai yang lama.
+    $data['image'] = $request->filled('image_url')
+        ? $request->input('image_url')
+        : $category->image;
 
-            $data['image'] = $request->file('image')->store('categories', 'public');
-        }
+    // Update kategori
+    $category->update($data);
 
-        $category->update($data);
+    return redirect()->route('categories.index')->with('successMessage', 'Category updated successfully!');
+}
 
-        return redirect()->route('categories.index')->with('successMessage', 'Category updated successfully!');
-    }
 
     public function destroy(ProductCategory $category)
     {
