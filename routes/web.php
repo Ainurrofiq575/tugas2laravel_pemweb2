@@ -1,57 +1,39 @@
 <?php
-
-use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomepageController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductCategoryController;
+use App\Http\Controllers\ProductController;
 
+Route::get('/',[HomePageController::class,'index'])->name('home');
 
+Route::get('products', [HomePageController::class, 'products']);
 
-    Route::get('/',[HomepageController::class,'index'])->name('home');
-    Route::get('products', [HomepageController::class, 'products']);
-    Route::get('/categories', function() { 
-        return "halaman categories product"; 
+Route::get('product/{slug}', [HomePageController::class, 'product']);
 
-    });
+Route::get('categories',[HomePageController::class, 'categories']);
 
-//     Route::get('/', function(){
-//     $title ="Homepage - WighoShop";
-//     return view ('web.homepage', ["title" =>$title]);
-//    });
-   Route::get('products', function(){
-    $title = "Products - WighoShop";
-    return view ('web.products', ["title"=>$title]);
-   });
-   Route::get('product/{slug}', function($slug){
-    return view('web.single_product');
-   });
-   Route::get('categories', function(){
-    return view('web.categories');
-   });
-   Route::get('category/{slug}', function($slug){
-    return view('web.single_category');
-   });
-   Route::get('cart', function(){
-    $title ="Cart - WighoShop";
-    return view('web.cart', ["title"=>$title]);
-   });
-   Route::get('checkout', function(){
-    return view('web.checkout');
-   });
+Route::get('category/{slug}', [HomePageController::class, 'category']);
 
-   Route::resource('dashboard/categories',ProductCategoryController::class);
+Route::get('cart', [HomePageController::class, 'cart']);
 
+Route::get('checkout', [HomePageController::class, 'checkout']);
 
-   Route::view('dashboard', 'dashboard')
+Route::group(['prefix'=>'dashboard'], function(){
+    Route::get('/',[DashboardController::class,'index'])->name('dashboard');
+    Route::resource('categories',ProductCategoryController::class);
+    Route::resource('product',ProductController::class);
+   })->middleware(['auth', 'verified']);
+   
+Route::view('dashboard', 'dashboard')
    ->middleware(['auth', 'verified'])
    ->name('dashboard');
-
 Route::middleware(['auth'])->group(function () {
    Route::redirect('settings', 'settings/profile');
-
    Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
    Volt::route('settings/password', 'settings.password')->name('settings.password');
-   Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
-});
-
+   Volt::route('settings/appearance',
+  'settings.appearance')->name('settings.appearance');
+  });
 require __DIR__.'/auth.php';

@@ -2,102 +2,125 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\ProductCategory;
 use Illuminate\Http\Request;
+use App\Models\Product;
+use App\Models\Categories;
+use Illuminate\Support\Str;
+
 
 class ProductController extends Controller
 {
-    // Menampilkan daftar produk
-    public function index()
+    public function index(Request $request)
     {
-        // Ambil semua produk dengan kategori terkait menggunakan eager loading
-        $products = Product::with('category')->get();
-        return view('products.index', compact('products'));
-    }
+        $product = Product::query();
 
-    // Menampilkan form untuk menambahkan produk baru
+        if ($request->filled('search')) {
+            $product->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        return view('dashboard.product.index', [
+            'product' => $product->paginate(10),
+        ]);
+    }
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
-        // Ambil semua kategori untuk dropdown kategori produk
-        $categories = ProductCategory::all();
-        return view('products.create', compact('categories'));
+        $categories = Categories::all();
+        return view('dashboard.product.create', [
+            'categories' => $categories
+        ]);
     }
 
-    // Menyimpan produk baru
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
-    {
-        // Validasi input dari pengguna
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:products,slug',
-            'product_category_id' => 'required|exists:product_categories,id', // Pastikan kategori ada
-            'description' => 'nullable|string',
-            'price' => 'required|numeric',
-            'stock' => 'required|integer',
-            'image_url' => 'nullable|image|max:2048', // Validasi gambar
-        ]);
-
-        // Menyimpan produk baru
-        $product = Product::create([
-            'name' => $request->name,
-            'slug' => $request->slug,
-            'description' => $request->description,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'product_category_id' => $request->product_category_id,
-            'image_url' => $request->hasFile('image_url') ? $request->file('image_url')->store('products', 'public') : null, // Menyimpan gambar jika ada
-            'is_active' => true,
-        ]);
-
-        // Redirect ke halaman produk setelah berhasil menambah produk
-        return redirect()->route('products.index')->with('successMessage', 'Product added successfully!');
-    }
-
-    // Menampilkan form untuk mengedit produk
-    public function edit(Product $product)
-    {
-        // Ambil semua kategori untuk dropdown kategori produk
-        $categories = ProductCategory::all();
-        return view('products.edit', compact('product', 'categories'));
-    }
-
-    // Mengupdate produk
-    public function update(Request $request, Product $product)
     {
         // Validasi input
         $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:products,slug,' . $product->id, // Mengecualikan slug produk yang sama
-            'product_category_id' => 'required|exists:product_categories,id', // Pastikan kategori ada
-            'description' => 'nullable|string',
-            'price' => 'required|numeric',
-            'stock' => 'required|integer',
-            'image_url' => 'nullable|image|max:2048', // Validasi gambar
+            'description' => 'required|string',
+            'sku' => 'required|string|max:100|unique:product,sku',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'product_category_id' => 'required|exists:product_categories,id',
+            'image_url' => 'nullable|url',
+            'is_active' => 'required|boolean'
         ]);
 
-        // Update data produk
-        $product->update([
-            'name' => $request->name,
-            'slug' => $request->slug,
-            'description' => $request->description,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'product_category_id' => $request->product_category_id,
-            'image_url' => $request->hasFile('image_url') ? $request->file('image_url')->store('products', 'public') : $product->image_url, // Update gambar jika ada
-        ]);
+        // Simpan data produk
+        $product = new Product;
+        $product->name = $request->name;
+        $product->slug = Str::slug($request->name);
+        $product->description = $request->description;
+        $product->sku = $request->sku;
+        $product->price = $request->price;
+        $product->stock = $request->stock;
+        $product->product_category_id = $request->product_category_id;
+        $product->image_url = $request->image_url;
+        $product->is_active = $request->is_active;
+        $product->save();
 
-        // Redirect ke halaman produk setelah berhasil memperbarui produk
-        return redirect()->route('products.index')->with('successMessage', 'Product updated successfully!');
+        return redirect()->route('product.index')->with('successMessage', 'Data produk berhasil disimpan.');
     }
 
-    // Menghapus produk
-    public function destroy(Product $product)
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
     {
-        // Hapus produk dari database
+        $product = Product::findOrFail($id);
+        $categories = Categories::all();
+
+        return view('dashboard.product.edit', [
+            'product' => $product,
+            'categories' => $categories
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        // Validasi input
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'sku' => 'required|string|max:100|unique:product,sku,' . $id,
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'product_category_id' => 'required|exists:product_categories,id',
+            'image_url' => 'nullable|url',
+            'is_active' => 'required|boolean'
+        ]);
+
+        // Simpan data produk
+        $product = Product::findOrFail($id);
+        $product->name = $request->name;
+        $product->slug = Str::slug($request->name);
+        $product->description = $request->description;
+        $product->sku = $request->sku;
+        $product->price = $request->price;
+        $product->stock = $request->stock;
+        $product->product_category_id = $request->product_category_id;
+        $product->image_url = $request->image_url;
+        $product->is_active = $request->is_active;
+        $product->save();
+
+        return redirect()->route('product.index')->with('successMessage', 'Data produk berhasil diperbarui.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $product = Product::findOrFail($id);
         $product->delete();
 
-        // Redirect ke halaman produk setelah berhasil menghapus produk
-        return redirect()->route('products.index')->with('successMessage', 'Product deleted successfully!');
+        return redirect()->route('product.index')->with('successMessage', 'Data produk berhasil dihapus.');
     }
 }

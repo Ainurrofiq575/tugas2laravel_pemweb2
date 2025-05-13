@@ -1,4 +1,4 @@
-<x-layouts.app :title="'Product Categories'">
+<x-layouts.app :title="'PCategories'">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div class="flex justify-between items-center mb-6">
@@ -9,12 +9,25 @@
             </a>
         </div>
 
+        <!-- Notifikasi -->
         @if(session()->has('successMessage'))
             <div class="mb-4 p-4 bg-green-200 text-green-700 rounded-md shadow-lg">
                 {{ session('successMessage') }}
             </div>
         @endif
 
+        <!-- Form Pencarian -->
+        <form method="GET" action="{{ route('categories.index') }}" class="mb-6 flex items-center gap-4">
+            <input type="text" name="search" value="{{ request('search') }}"
+                placeholder="Search categories..."
+                class="w-full max-w-sm px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200 focus:outline-none">
+            <button type="submit"
+                class="bg-blue-500 text-white px-5 py-2 rounded-md hover:bg-blue-600 transition duration-200">
+                Search
+            </button>
+        </form>
+
+        <!-- Tabel Kategori -->
         <div class="bg-white shadow-xl rounded-md overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-100">

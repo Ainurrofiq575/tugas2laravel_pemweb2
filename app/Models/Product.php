@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
     use HasFactory;
+
+    protected $table = 'product'; // Jika nama tabel tidak jamak (bukan 'products')
 
     protected $fillable = [
         'name',
@@ -21,9 +23,9 @@ class Product extends Model
         'is_active',
     ];
 
+    // Relasi ke kategori produk
     public function category()
-{
-    return $this->belongsTo(ProductCategory::class, 'product_category_id');
-}
-
+    {
+        return $this->belongsTo(Categories::class, 'product_category_id');
+    }
 }
